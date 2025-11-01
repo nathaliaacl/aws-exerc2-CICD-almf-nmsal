@@ -1,0 +1,14 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+
+  build:
+    commands:
+      - kubectl set image deployment/todo-list todo-list=${ECR_REPO}:$IMAGE_TAG --record || true
+      - kubectl rollout status deployment/todo-list --timeout=120s || true
+
+artifacts:
+  files: []

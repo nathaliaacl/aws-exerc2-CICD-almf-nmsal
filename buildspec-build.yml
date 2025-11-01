@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables:
-    IMAGE_TAG: "2.0.0"
+    IMAGE_TAG: "1.0.0"
 
 phases:
   pre_build:
@@ -20,9 +20,6 @@ phases:
   post_build:
     commands:
       - docker push ${REPO_URI}:$IMAGE_TAG
-      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
-      - kubectl set image deployment/todo-list todo-list=${REPO_URI}:$IMAGE_TAG --record || true
-      - kubectl rollout status deployment/todo-list --timeout=120s || true
 
 artifacts:
   files: []
