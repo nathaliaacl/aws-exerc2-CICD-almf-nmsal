@@ -3,32 +3,30 @@ version: 0.2
 env:
   variables:
     IMAGE_TAG: "1.0.0"
-    # ECR_REPO set via env var in Terraform CodeBuild project
-    # EKS_CLUSTER_NAME set via env var in Terraform CodeBuild project
-    # AWS_REGION set via env var in Terraform CodeBuild project
+    # ECR_REPO, EKS_CLUSTER_NAME, AWS_REGION definidos no CodeBuild
 
 phases:
   pre_build:
     commands:
-      - echo "Pré-build: autenticar no ECR"
+      - echo "Pre-build: autenticar no ECR"
       - aws --version
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
       - REPO_URI=$ECR_REPO
       - echo "REPO_URI=$REPO_URI"
+
   build:
     commands:
       - echo "Construindo a imagem docker"
       - docker build -t ${REPO_URI}:$IMAGE_TAG .
       - docker images
+
   post_build:
     commands:
       - echo "Fazendo push da imagem para o ECR"
       - docker push ${REPO_URI}:$IMAGE_TAG
       - echo "Imagem enviada: ${REPO_URI}:$IMAGE_TAG"
       - echo "Atualizando Deployment no EKS"
-      # atualiza kubeconfig para o cluster EKS (região configurada)
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
-      # Nome do deployment pode variar conforme o manifest do repo; ajuste abaixo se necessário.
       - kubectl set image deployment/todo-list todo-list=${REPO_URI}:$IMAGE_TAG --record || true
       - kubectl rollout status deployment/todo-list --timeout=120s || true
 
