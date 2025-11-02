@@ -1,14 +1,25 @@
 version: 0.2
 
 phases:
+  install:
+    commands:
+      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
+      - kubectl version --client
+
   pre_build:
     commands:
-      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+      - aws eks update-kubeconfig --region $EKS_REGION --name $EKS_CLUSTER_NAME
+      - kubectl get nodes
 
   build:
     commands:
-      - kubectl set image deployment/todo-list todo-list=${ECR_REPO}:$IMAGE_TAG --record || true
-      - kubectl rollout status deployment/todo-list --timeout=120s || true
+      - kubectl apply -f deployment.yaml
+      - kubectl rollout status deployment/todo-app-deployment -n default --timeout=5m
 
-artifacts:
-  files: []
+  post_build:
+    commands:
+      - kubectl get deployment todo-app-deployment -n default
+      - kubectl get pods -n default -l app=todo-app
+      - kubectl get service todo-app-service -n default
