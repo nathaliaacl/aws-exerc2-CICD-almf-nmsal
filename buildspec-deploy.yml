@@ -1,0 +1,34 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "=== INSTALLING KUBECTL ==="
+      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
+      - kubectl version --client
+
+  pre_build:
+    commands:
+      - echo "=== CONFIGURING KUBECTL ==="
+      - aws eks update-kubeconfig --region $EKS_REGION --name $EKS_CLUSTER_NAME
+      - echo "Testing cluster connection..."
+      - kubectl get nodes
+
+  build:
+    commands:
+      - echo "=== DEPLOYING TO EKS ==="
+      - echo "Current directory: $(pwd)"
+      - echo "Files in directory:"
+      - ls -la
+      - kubectl apply -f deployment.yaml
+      - echo "Waiting for rollout to complete..."
+      - kubectl rollout status deployment/todo-app-deployment -n default --timeout=5m
+
+  post_build:
+    commands:
+      - echo "=== DEPLOYMENT COMPLETED ==="
+      - kubectl get deployment todo-app-deployment -n default
+      - kubectl get pods -n default -l app=todo-app
+      - kubectl get service todo-app-service -n default
