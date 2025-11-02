@@ -92,6 +92,7 @@ function AddItemForm({ onNewItem }) {
     return (
         <Form onSubmit={submitNewItem}>
             <InputGroup className="mb-3">
+            <p>NOVA IMAGEM</p>
                 <Form.Control
                     value={newItem}
                     onChange={e => setNewItem(e.target.value)}
