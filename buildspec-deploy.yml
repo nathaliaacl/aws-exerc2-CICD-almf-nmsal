@@ -15,11 +15,18 @@ phases:
 
   build:
     commands:
+      - echo "Verificando conteúdo do deployment.yaml antes do apply:"
+      - cat deployment.yaml
+      - echo "Aplicando deployment..."
       - kubectl apply -f deployment.yaml
+      - echo "Verificando status dos pods..."
+      - kubectl get pods -n default -l app=todo-app
       - kubectl rollout status deployment/todo-app-deployment -n default --timeout=5m
 
   post_build:
     commands:
       - kubectl get deployment todo-app-deployment -n default
       - kubectl get pods -n default -l app=todo-app
+      - echo "=== LOGS DOS PODS COM ERRO ==="
+      - kubectl logs -n default -l app=todo-app --prefix=true --all-containers=true --tail=50
       - kubectl get service todo-app-service -n default

@@ -17,8 +17,11 @@ phases:
     commands:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo "Verificando se a imagem foi pushada:"
+      - aws ecr describe-images --repository-name $IMAGE_REPO_NAME --region $AWS_DEFAULT_REGION
       - printf '[{"name":"todo-app","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - sed -i "s|IMAGE_PLACEHOLDER|$REPOSITORY_URI:$IMAGE_TAG|g" deployment.yaml
+      - echo "Conteúdo do deployment.yaml após substituição:"
       - cat deployment.yaml
 
 artifacts:
