@@ -13,15 +13,19 @@ phases:
       - aws eks update-kubeconfig --region $EKS_REGION --name $EKS_CLUSTER_NAME
       - kubectl get nodes
 
-  build:
-    commands:
-      - echo "Verificando conteúdo do deployment.yaml antes do apply:"
-      - cat deployment.yaml
-      - echo "Aplicando deployment..."
-      - kubectl apply -f deployment.yaml
-      - echo "Verificando status dos pods..."
-      - kubectl get pods -n default -l app=todo-app
-      - kubectl rollout status deployment/todo-app-deployment -n default --timeout=5m
+build:
+  commands:
+    - echo "Verificando conteúdo do deployment.yaml antes do apply:"
+    - cat deployment.yaml
+    - echo "Aplicando MySQL..."
+    - kubectl apply -f mysql.yaml --timeout=5m
+    - echo "Aguardando MySQL ficar pronto..."
+    - kubectl wait --for=condition=ready pod -l app=mysql --timeout=3m
+    - echo "Aplicando todo-app deployment..."
+    - kubectl apply -f deployment.yaml
+    - echo "Verificando status dos pods..."
+    - kubectl get pods -n default -l app=todo-app
+    - kubectl rollout status deployment/todo-app-deployment -n default --timeout=5m
 
   post_build:
     commands:

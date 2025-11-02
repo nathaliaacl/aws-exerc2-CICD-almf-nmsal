@@ -28,3 +28,4 @@ artifacts:
   files:
     - imagedefinitions.json
     - deployment.yaml
+  base-directory: .
