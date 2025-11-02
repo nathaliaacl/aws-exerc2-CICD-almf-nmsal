@@ -1,25 +1,55 @@
+# version: 0.2
+
+# phases:
+#   install:
+#     commands:
+#       - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+#       - chmod +x kubectl
+#       - mv kubectl /usr/local/bin/
+#       - kubectl version --client
+
+#   pre_build:
+#     commands:
+#       - aws eks update-kubeconfig --region $EKS_REGION --name $EKS_CLUSTER_NAME
+#       - kubectl get nodes
+
+#   build:
+#     commands:
+#       - kubectl apply -f deployment.yaml
+#       - kubectl rollout status deployment/todo-app-deployment -n default --timeout=5m
+
+#   post_build:
+#     commands:
+#       - kubectl get deployment todo-app-deployment -n default
+#       - kubectl get pods -n default -l app=todo-app
+#       - kubectl get service todo-app-service -n default
 version: 0.2
 
 phases:
   install:
     commands:
-      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-      - chmod +x kubectl
-      - mv kubectl /usr/local/bin/
-      - kubectl version --client
-
-  pre_build:
-    commands:
-      - aws eks update-kubeconfig --region $EKS_REGION --name $EKS_CLUSTER_NAME
-      - kubectl get nodes
+      - echo "=== DEBUG - FINDING CORRECT PATH ==="
+      - echo "Current working directory: $(pwd)"
+      - echo "=== FULL DIRECTORY STRUCTURE ==="
+      - find . -type f -name "*.yml" -o -name "*.yaml" -o -name "*.json" | head -20
+      - echo "=== LISTING ALL DIRECTORIES ==="
+      - ls -la
+      - echo "=== CHECKING PARENT DIRECTORIES ==="
+      - ls -la ../
+      - echo "=== CHECKING ROOT DIRECTORY ==="
+      - ls -la /
+      - echo "=== SPECIFIC FILE SEARCH ==="
+      - find / -name "buildspec-deploy.yml" 2>/dev/null | head -10 || echo "File not found"
+      - echo "=== CODEBUILD ENV VARIABLES ==="
+      - env | grep -i codebuild
+      - echo "=== DEBUG COMPLETE ==="
 
   build:
     commands:
+      - echo "Applying deployment..."
+      - find . -name "deployment.yaml" -exec echo "Found: {}" \;
       - kubectl apply -f deployment.yaml
-      - kubectl rollout status deployment/todo-app-deployment -n default --timeout=5m
 
   post_build:
     commands:
-      - kubectl get deployment todo-app-deployment -n default
-      - kubectl get pods -n default -l app=todo-app
-      - kubectl get service todo-app-service -n default
+      - echo "Deployment completed"
